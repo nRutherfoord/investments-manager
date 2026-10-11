@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from investments.models import Investment, InvestmentPlatform
+from investments.models import Investment, InvestmentPlatform, Trade
 
 
 class InvestmentsSerializer(serializers.ModelSerializer):
@@ -13,3 +13,9 @@ class InvestmentPlatformSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvestmentPlatform
         fields = ["id", "name", "accountValue"]  # noqa: RUF012
+
+
+class TradeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trade
+        
