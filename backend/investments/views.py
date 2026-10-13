@@ -1,5 +1,5 @@
 from etoro_api.account_info import get_total_invested
-from investments.services import sync_etoro_trades
+from investments.services import get_trading_history, get_open_trades
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -27,7 +27,12 @@ class TradeViewSet(viewsets.ViewSet):
       queryset = Trade.objects.all()
       serializer_class = TradeSerializer
       @action(detail=False, methods=["get"])
-      def sync(self, request):
-            result = sync_etoro_trades()
+      def syncOpen(self, request):
+            result = get_open_trades()
+            return Response(result)
+      
+      @action(detail=False, methods=["get"])
+      def syncHistoricalTrades(self, request):
+            result = get_trading_history()
             return Response(result)
             
