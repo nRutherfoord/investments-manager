@@ -3,9 +3,29 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.sqlite3
 .venv/
 env/
+venv/
+ENV/
+
+# Python tooling and test artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Django generated files
+/staticfiles/
+
+# Build artifacts
+build/
+dist/
 
 # Local environment variables
 .env

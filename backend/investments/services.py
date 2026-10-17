@@ -1,15 +1,15 @@
-from investments.models import Trade
+from etoro_api.account_info import get_calculate_equity
+from investments.models import AccountEquitySnapshot, Trade
 from etoro_api.trades import fetch_all_open_trades, fetch_closed_trades
 
 
-
-def get_open_trades():
+def get_open_trades(account):
     print("Attempting to sync etoro with local db....")
     etoro_trades = fetch_all_open_trades()
-    created_count = 0 
+    created_count = 0
     for item in etoro_trades:
         _, created = Trade.objects.get_or_create(
-            # account=account,
+            account=account,
             external_id=item["positionID"],
             defaults={
                 "symbol": item["instrumentID"],
@@ -20,22 +20,21 @@ def get_open_trades():
                 "fees": item.get("totalFees", 0),
                 "executed_at": item["openDateTime"],
                 "raw_data": item,
-                "trade_status": Trade.Status.OPEN
+                "trade_status": Trade.Status.OPEN,
             },
         )
-        
+
     created_count += created
     return {"fetched": len(etoro_trades), "created": created_count}
 
 
-
-def get_trading_history():
+def get_trading_history(account):
     print("Attempting to sync etoro with local db for trading history....")
     etoro_trades = fetch_closed_trades("2025-11-07T00:00:00Z")
-    created_count = 0 
+    created_count = 0
     for item in etoro_trades:
         _, created = Trade.objects.get_or_create(
-            # account=account,
+            account=account,
             external_id=item["positionId"],
             defaults={
                 "symbol": item["instrumentId"],
@@ -45,11 +44,28 @@ def get_trading_history():
                 "currency": "USD",
                 "fees": item.get("totalFees", 0),
                 "executed_at": item["openTimestamp"],
-                "closed_at" : item.get("closeTimestamp"),
-                "trade_status" : Trade.Status.CLOSED if item.get("closeTimestamp") else Trade.Status.OPEN,
+                "closed_at": item.get("closeTimestamp"),
+                "trade_status": (
+                    Trade.Status.CLOSED
+                    if item.get("closeTimestamp")
+                    else Trade.Status.OPEN
+                ),
                 "raw_data": item,
             },
         )
-        
+
     created_count += created
     return {"fetched": len(etoro_trades), "created": created_count}
+
+
+def get_account_equity(account):
+    print("Attempting to get etoro account equity for account:",account)
+    available_cash, total_invested, unrealized_pnl = get_calculate_equity()
+
+    AccountEquitySnapshot.objects.create(
+        account=account,
+        available_cash=available_cash,
+        total_invested=total_invested,
+        unrealized_pnl=unrealized_pnl,
+        currency="USD",
+    )

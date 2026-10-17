@@ -1,11 +1,11 @@
 from etoro_api.account_info import get_total_invested
-from investments.services import get_trading_history, get_open_trades
+from investments.services import get_trading_history, get_open_trades, get_account_equity
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from investments.models import Investment, InvestmentPlatform, Trade
-from investments.serializer import InvestmentPlatformSerializer, InvestmentsSerializer, TradeSerializer
+from investments.models import Investment, InvestmentPlatform, InvestmentPlatformAccount, Trade
+from investments.serializer import InvestmentPlatformAccountSerializer, InvestmentPlatformSerializer, InvestmentsSerializer, TradeSerializer
 
 # Create your views here.
 
@@ -23,6 +23,17 @@ class InvestmentPlatformViewSet(viewsets.ViewSet):
             return Response({"total_invested": get_total_invested()})
       
 
+class InvestmentPlatformAccountViewSet(viewsets.ModelViewSet):
+      queryset = InvestmentPlatformAccount.objects.only("account_name").all()
+      serializer_class = InvestmentPlatformAccountSerializer
+      
+      @action(detail=True, methods=["get"])
+      def sync_account_equity(self,request, pk=None):
+            account = self.get_object()
+            equity = get_account_equity(account)
+            return Response({"equity": equity})
+      
+      
 class TradeViewSet(viewsets.ViewSet):
       queryset = Trade.objects.all()
       serializer_class = TradeSerializer
